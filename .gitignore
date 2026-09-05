@@ -1,0 +1,5 @@
+build*/
+out*/
+*.log
+!out_128c8/
+!out_m1234/
