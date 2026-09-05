@@ -773,6 +773,75 @@ Implemented in this repository:
   (`--cuda-check`) and end to end with the CPU trainer drawing the same
   hash noise (`--rng hash`).
 
+**Scope of the neural block texturing disclosure.** The runs above are
+particular points in a family, and the family is what is disclosed. The
+mechanism (a fixed-size per-block record of shared block controls plus
+per-texel discrete selectors, a small neural block decoder reconstructing
+every output from that record, selectors chosen by exact search, the rest
+trained derivative-free) is independent of the following choices, each of
+which follows directly from it:
+
+* **Outputs.** The four-map example is one instance. One block record and
+  one decoder can jointly reconstruct any combination of base color /
+  albedo; normals in any encoding (three-channel, two-channel with
+  reconstructed Z, octahedral, tangent-space or world-space); roughness or
+  gloss; metallic and specular parameters; ambient occlusion; height or
+  displacement; opacity; emissive; masks and material IDs; arbitrary shader
+  or material parameters; and learned or intermediate features consumed by
+  a later shader or network rather than displayed. Output channel counts are
+  arbitrary (the implementation's 3 channels per texture and 4 textures are
+  limits of the code, not of the method), and outputs may have different
+  value ranges, losses and weights.
+* **Decoder configurations.** One decoder for the whole stack (as
+  implemented); a shared trunk with multiple output heads; separate heads
+  or separate small decoders per semantic map sharing the block record;
+  heads with different widths; decoding only a requested subset of the
+  outputs (a head per map makes the cost of unrequested maps zero); and
+  decoders whose inputs include, besides the record and the texel position,
+  the mip level, a material or array index, or per-texture side information.
+* **Inference amortization.** A single evaluation of the neural block
+  decoder may reconstruct multiple texture or material channels
+  simultaneously from the same block record. The computational cost of the
+  shared hidden layers is therefore amortized across all reconstructed
+  outputs, just as the storage cost of the block latent and the selectors is
+  shared across those outputs. Increasing the number of jointly
+  reconstructed material channels need not proportionally increase either
+  the stored bits or the decoder computation; this is what distinguishes the
+  method from applying a single-texture neural block codec once per map.
+  (Measured: the 4-layer material shares one 96-bit record per block across
+  four textures, and its 12-output decoder costs the same hidden-layer work
+  as a 3-output one.)
+* **Storage structure.** The number of selector channels and their
+  individual bit widths (1 to 8 bits each, demonstrated: 1, 2, 3, 4 and
+  mixed 3+1, 2+1, 4+1, 3+2, 2+2, 3+1+1, 2+2+2); the block latent's channel
+  count and precision (demonstrated: 1 to 6 channels at 8 bits; any
+  fixed-point or floating-point precision, or a codebook / vector-quantized
+  block latent, follows); block dimensions other than 4×4 (demonstrated:
+  6×6 with the `--block` option; any rectangular block, and blocks of
+  different sizes per level); more than two levels of block data
+  (demonstrated: a third level at 2×2 level-2 blocks with `--latent3`),
+  including levels sampled bilinearly rather than per block; mixed
+  precision across levels and channels; per-block or per-texture codebooks
+  for selectors or block values; lossless entropy coding of the records
+  (context-modeled coding of the selector planes, predictive coding of the
+  block latents) around the fixed-rate packets for storage and transmission;
+  fixed-rate packets for random access and hardware decode; mip chains
+  (independent per level, or one record family with mip-aware decoding);
+  texture arrays, material arrays and temporal sequences sharing a decoder
+  and, optionally, block data; and transcoding of the decoded outputs to
+  any hardware format (BC1–BC7, BC6H, ASTC LDR/HDR, ETC, uncompressed) on
+  the CPU or the GPU, at load, streaming or build time.
+* **Training and encoding.** Any derivative-free optimizer for the block
+  latents and decoder (antithetic ES with footprint attribution and
+  central finite differences as implemented; SPSA / Rademacher
+  perturbations, coordinate search, simulated annealing), exact or
+  heuristic search for the selectors and optionally for the block values,
+  backpropagation for the continuous parts where the objective permits it,
+  a decoder trained per asset (as implemented) or once over a corpus and
+  reused (below), and objectives that include downstream non-differentiable
+  stages (a block-format transcoder, a renderer, a BRDF) or perceptual and
+  map-specific losses.
+
 Described, not yet implemented:
 
 * **Load-time decoding and transcoding to hardware formats.** The neural
