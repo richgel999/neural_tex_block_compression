@@ -875,7 +875,10 @@ Described, not yet implemented:
 ## Status
 
 This is a deliberately simple research testbed for learning and experimentation,
-not a codec. Nothing is tuned. A CUDA backend (`--cuda`) trains everything
+not a fully fleshed out codec yet (but it's close - the latent texture, neural 
+net weights, and metadata is written to disk).
+
+A CUDA backend (`--cuda`) trains everything
 about 25x faster than the CPU, which is what made the sweeps in
 [Neural block texturing](#neural-block-texturing) practical: per-pixel
 multi-channel selectors chosen by exhaustive search plus an ES-trained block
