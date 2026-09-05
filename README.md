@@ -876,7 +876,7 @@ Described, not yet implemented:
 
 This is a deliberately simple research testbed for learning and experimentation,
 not a fully fleshed out codec yet (but it's close - the latent texture, neural 
-net weights, and metadata is written to disk).
+net weights, and metadata is written to disk, and it can read them back off disk and infer using --load writing new PNG's).
 
 A CUDA backend (`--cuda`) trains everything
 about 25x faster than the CPU, which is what made the sweeps in
