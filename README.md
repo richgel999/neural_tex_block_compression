@@ -2,6 +2,8 @@
 
 _Code, README, and public Prior Art disclosure By Richard Geldreich, Jr., September 5, 2026, email: richgel99 at gmail.com, X: https://x.com/richgel999/_
 
+Note the example/test .PNG images in this repo are not covered by the [Unlicense](https://unlicense.org/), which applies to all the other files: source code, build scripts, this README etc.
+
 A small, self-contained C++ testbed: an RGB image (or up to four same-size
 RGB textures of one material) is encoded as a shared low-resolution latent
 texture plus a tiny MLP decoder, and both are trained
