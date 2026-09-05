@@ -1,4 +1,4 @@
-# neural texture compression trained with Evolution Strategies
+# Neural block texture compression trained with Evolution Strategies (ES)
 
 A small, self-contained C++ testbed: an RGB image (or up to four same-size
 RGB textures of one material) is encoded as a shared low-resolution latent
