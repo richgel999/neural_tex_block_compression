@@ -239,6 +239,17 @@ selectors are chosen by exact exhaustive search every iteration, the
 decoder by ES then per-weight central finite differences. Nothing is
 backpropagated.
 
+**Blocks are self-contained packets.** Because the selectors are sampled
+nearest and the block latent is one texel per block, everything a block's
+16 texels need is in its own record: the 8-bit block values followed by
+the 16 packed selectors (48 to 112 bits per block in the runs below). The
+records can be stored as a flat array in block order, like BC or ASTC
+blocks, and any block can be read and decoded on its own, in any order, in
+parallel, with no neighbor access and no latent texture or grid at all.
+The "two latent levels" are only how the trainer holds the same data
+while it is being optimized; a decoder needs nothing but the packet and
+the shared MLP weights.
+
 **Sample: chief1.png** (512×512 game texture), 2-bit selectors and a
 2-channel block latent, 48 bits per 4×4 block:
 
@@ -700,10 +711,17 @@ Implemented in this repository:
   (`--qat B1,B2,...`, e.g. `3,1` or `2,2,2`). A texel is reconstructed as
   `x_i = f_theta(c_b, s_i, u_i, v_i)` by one evaluation of a tiny MLP on the
   block latent, the texel's own selectors and its position in the block; for a
-  material the same MLP emits every texture's channels from one record. At
-  5 to 6 bpp this is not a latent texture sampled at render time but a
-  fixed-rate explicit neural block code, closer to BC7 than to a latent
-  hierarchy. Encoding is: selectors by exact exhaustive per-texel search
+  material the same MLP emits every texture's channels from one record. The
+  record is a self-contained packet: with nearest-sampled selectors and one
+  latent texel per block, a block's 16 texels depend on nothing outside its
+  own record and the shared decoder weights, so the records can be stored
+  as a flat array in block order (block values then packed selectors, a
+  fixed number of bits per block, exactly as BC or ASTC blocks are stored),
+  read and decoded individually in any order and in parallel, with no
+  neighbor access and no latent texture or grid structure of any kind. The
+  latent levels exist only inside the trainer. At 5 to 6 bpp this is not a
+  latent texture sampled at render time but a fixed-rate explicit neural
+  block code, closer to BC7 than to a latent hierarchy. Encoding is: selectors by exact exhaustive per-texel search
   (each texel's loss is local, so every grid value is tried and the best
   kept), block latent by antithetic ES with support-restricted footprint
   attribution, decoder by antithetic ES then per-weight central finite
