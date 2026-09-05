@@ -1,5 +1,7 @@
 # Neural block texture compression trained with Evolution Strategies (ES)
 
+_Code, README, and public Prior Art disclosure By Richard Geldreich, Jr., September 5, 2026_
+
 A small, self-contained C++ testbed: an RGB image (or up to four same-size
 RGB textures of one material) is encoded as a shared low-resolution latent
 texture plus a tiny MLP decoder, and both are trained
