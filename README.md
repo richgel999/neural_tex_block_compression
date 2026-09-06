@@ -963,6 +963,16 @@ Described, not yet implemented:
 * Learned interpolation kernels expressed as a few global parameters rather
   than as decoder inputs.
 
+## Prior art disclosure: Updated Sept. 6, 2026
+
+* This has been implemented and tested: Higher quality results are achieved if
+the 2nd lower resolution latent channels are bilinear sampled. 1/4, 1/6, 1/8,
+and 1/16 resolution lower res "color" latents (containing 2-8 channels or more) have been tested so far.
+* So far the best results have been a full texture resolution "selectors" latent, which is quantized
+* to 1-5 bits/channel, and has 1-3 channels (typically 1 for a single texture, 2-3 for a full material). This is effectively "sampled" using point sampling (nearest). The full resolution "selectors" latent holds the highest spatial frequencies and is itself compressible using lossy (DCT/DST) or lossless coding.
+* The 2nd latent, which is created using quantization-aware training with ES and quantized to 4-8 bits/channel, contains 2-8 channels (possible more for complex materials), but typically 2-4 channels are used for textures and materials.
+* Training a 2 level neural block texture like this is essentially like a hybrid between traditional GPU textures and neural textures. The training program uses exhaustive evaluation in each training step to determine the best "selectors" to use given the current latent and MLP weights.
+
 ## Status
 
 This is a deliberately simple research testbed for learning and experimentation,
